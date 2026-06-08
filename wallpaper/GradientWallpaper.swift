@@ -42,12 +42,11 @@ function draw(){
     if(b.y<-.2||b.y>1.2) b.vy*=-1;
     const cx=b.x*w, cy=b.y*h, r=b.r*m;
     const [r_,g_,bl_]=b.c.map(Math.round);
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    g.addColorStop(0,   `rgba(${r_},${g_},${bl_},.52)`);
-    g.addColorStop(.45, `rgba(${r_},${g_},${bl_},.22)`);
-    g.addColorStop(.75, `rgba(${r_},${g_},${bl_},.06)`);
-    g.addColorStop(1,   `rgba(${r_},${g_},${bl_},0)`);
-    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    ctx.save();
+    ctx.filter=`blur(${Math.round(r*0.32)}px)`;
+    ctx.fillStyle=`rgba(${r_},${g_},${bl_},.85)`;
+    ctx.beginPath(); ctx.arc(cx,cy,r*0.5,0,Math.PI*2); ctx.fill();
+    ctx.restore();
   }
   requestAnimationFrame(draw);
 }
