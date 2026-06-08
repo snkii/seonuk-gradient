@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -114,6 +115,10 @@ class WallpaperForm : Form
     const float BlobSizeFactor = .90f;
     const float BlurFactor = .22f;
     const float ColorTransitionSeconds = 6.5f;
+    const int FineGrainTileSize = 96;
+    const int CoarseGrainTileSize = 360;
+    const int FineGrainAlpha = 11;
+    const int CoarseGrainAlpha = 5;
 
     struct Blob
     {
@@ -127,6 +132,10 @@ class WallpaperForm : Form
     readonly Timer   _colorTimer = new();
     readonly Stopwatch _clock = Stopwatch.StartNew();
     Bitmap?   _buf;
+    Bitmap?   _fineGrainTile;
+    Bitmap?   _coarseGrainTile;
+    TextureBrush? _fineGrainBrush;
+    TextureBrush? _coarseGrainBrush;
     Graphics? _g;
     double     _lastTickSeconds;
     bool      _paused;
@@ -253,8 +262,78 @@ class WallpaperForm : Form
             float size = b.R * BlobSizeFactor * minDim;
             DrawBlob(b.X * w, b.Y * h, size, BlurFactor * minDim, b.Sx, b.Sy, b.Rot, b.Current);
         }
+        ApplyFilmTexture(w, h);
 
         e.Graphics.DrawImageUnscaled(_buf, 0, 0);
+    }
+
+    void ApplyFilmTexture(int width, int height)
+    {
+        ApplyFilmTone(width, height);
+        ApplyFilmGrain(width, height);
+    }
+
+    void ApplyFilmTone(int width, int height)
+    {
+        using var linear = new LinearGradientBrush(
+            new Rectangle(0, 0, Math.Max(width, 1), Math.Max(height, 1)),
+            Color.FromArgb(16, 251, 73, 52),
+            Color.FromArgb(14, 69, 133, 136),
+            135f);
+        linear.InterpolationColors = new ColorBlend
+        {
+            Colors = new[]
+            {
+                Color.FromArgb(16, 251, 73, 52),
+                Color.FromArgb(7, 184, 187, 38),
+                Color.FromArgb(14, 69, 133, 136),
+            },
+            Positions = new[] { 0f, .45f, 1f }
+        };
+        _g!.FillRectangle(linear, 0, 0, width, height);
+
+        using var path = new GraphicsPath();
+        path.AddEllipse(width * -.25f, height * -.35f, width * 1.4f, height * 1.4f);
+        using var radial = new PathGradientBrush(path)
+        {
+            CenterPoint = new PointF(width * .48f, height * .42f),
+            CenterColor = Color.FromArgb(19, 250, 189, 47),
+            SurroundColors = new[] { Color.FromArgb(0, 40, 40, 40) }
+        };
+        _g.FillPath(radial, path);
+    }
+
+    void ApplyFilmGrain(int width, int height)
+    {
+        if (_fineGrainBrush == null)
+        {
+            _fineGrainTile = CreateGrainTile(FineGrainTileSize, FineGrainAlpha, 0x5E0A);
+            _fineGrainBrush = new TextureBrush(_fineGrainTile, WrapMode.Tile);
+        }
+        if (_coarseGrainBrush == null)
+        {
+            _coarseGrainTile = CreateGrainTile(CoarseGrainTileSize, CoarseGrainAlpha, 0xC0A4);
+            _coarseGrainBrush = new TextureBrush(_coarseGrainTile, WrapMode.Tile);
+        }
+
+        _g!.FillRectangle(_coarseGrainBrush, 0, 0, width, height);
+        _g.FillRectangle(_fineGrainBrush, 0, 0, width, height);
+    }
+
+    static Bitmap CreateGrainTile(int size, int alpha, int seed)
+    {
+        var bmp = new Bitmap(size, size, PixelFormat.Format32bppPArgb);
+        var rng = new Random(seed);
+
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            bool light = rng.Next(2) == 0;
+            int value = light ? 255 : 0;
+            bmp.SetPixel(x, y, Color.FromArgb(alpha, value, value, value));
+        }
+
+        return bmp;
     }
 
     void DrawBlob(float cx, float cy, float size, float blur, float sx, float sy, float rot, Color col)
@@ -279,6 +358,8 @@ class WallpaperForm : Form
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
         _animTimer.Dispose(); _colorTimer.Dispose();
+        _fineGrainBrush?.Dispose(); _fineGrainTile?.Dispose();
+        _coarseGrainBrush?.Dispose(); _coarseGrainTile?.Dispose();
         _buf?.Dispose(); _g?.Dispose();
         base.OnFormClosed(e);
     }

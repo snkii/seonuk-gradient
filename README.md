@@ -19,7 +19,7 @@ Soft organic color blobs drift across a dark background, slowly cycling through 
 | 🪟 Windows | `.scr` screensaver | C# · .NET 8 · WinForms |
 | 🪟 Windows | Live wallpaper | C# · .NET 8 · WinForms · WorkerW |
 | 🍎 macOS | `.saver` screensaver | Swift · ScreenSaverView |
-| 🍎 macOS | Live wallpaper | Swift · AppKit |
+| 🍎 macOS | Wallpaper | Swift · AppKit |
 
 ---
 
@@ -28,6 +28,7 @@ Soft organic color blobs drift across a dark background, slowly cycling through 
 - **3 organic color blobs** with randomized position, velocity, size, stretch, and rotation
 - **Auto-cycles** — palette shifts every 7 seconds with smooth 6.5 second transitions
 - **Gruvbox-inspired palette** — 10 handpicked accent colors
+- **Vintage film grain texture** — subtle fine/coarse grain plus warm tone overlay to soften 4K banding
 - **Auto-pauses on sleep / lock screen** (macOS wallpaper)
 - **Static mesh lock screen background** on macOS by syncing a generated wallpaper image
 - Zero dependencies beyond the platform SDK
@@ -81,9 +82,11 @@ make install
 
 Open **System Settings → Screen Saver** and select **GradientScreenSaver**.
 
+When the macOS wallpaper app has run, the screensaver starts from the latest saved desktop scene.
+
 ---
 
-### 🍎 macOS — Live Wallpaper
+### 🍎 macOS — Wallpaper
 
 **[⬇ Download GradientWallpaper-macOS.zip](https://github.com/snkii/seonuk-gradient/releases/latest/download/GradientWallpaper-macOS.zip)**
 
@@ -104,7 +107,7 @@ make install-login  # also auto-start at login
 ```
 </details>
 
-A ✦ icon in the menu bar lets you quit. No Dock icon.
+A ✦ icon in the menu bar lets you switch between low-power random still modes that refresh every 1/3/5/10 minutes, or pause automatic refreshes. The default is Random Still - 10 Minutes. The lock screen wallpaper is refreshed from the same scene shown on the desktop. You can also generate a new random scene or quit from the menu. No Dock icon.
 
 ---
 
@@ -159,7 +162,7 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 | 🪟 Windows | `.scr` 화면보호기 | C# · .NET 8 · WinForms |
 | 🪟 Windows | 라이브 배경화면 | C# · .NET 8 · WinForms · WorkerW |
 | 🍎 macOS | `.saver` 화면보호기 | Swift · ScreenSaverView |
-| 🍎 macOS | 라이브 배경화면 | Swift · AppKit |
+| 🍎 macOS | 배경화면 | Swift · AppKit |
 
 ---
 
@@ -168,6 +171,7 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 - **3개의 유기적 색상 블롭**이 위치, 속도, 크기, 비율, 회전을 랜덤으로 갖고 떠다님
 - **자동 색상 순환** — 7초마다 팔레트 변경, 6.5초 동안 부드럽게 전환
 - **Gruvbox 팔레트** — 10가지 엑센트 컬러
+- **빈티지 필름 그레인 질감** — 4K banding을 줄이기 위한 fine/coarse grain + 따뜻한 tone overlay
 - **절전 모드/잠금화면 자동 일시정지** (macOS 배경화면)
 - **macOS 잠금화면 정적 mesh 배경** — 생성된 wallpaper 이미지를 시스템 배경으로 동기화
 - 플랫폼 SDK 외 별도 의존성 없음
@@ -221,9 +225,11 @@ make install
 
 **시스템 설정 → 화면 보호기**에서 **GradientScreenSaver** 선택.
 
+macOS 배경화면 앱이 실행된 적이 있으면, 화면보호기는 마지막으로 저장된 데스크톱 scene에서 시작합니다.
+
 ---
 
-### 🍎 macOS — 라이브 배경화면
+### 🍎 macOS — 배경화면
 
 **[⬇ GradientWallpaper-macOS.zip 다운로드](https://github.com/snkii/seonuk-gradient/releases/latest/download/GradientWallpaper-macOS.zip)**
 
@@ -244,7 +250,7 @@ make install-login  # 로그인 항목에도 자동 등록
 ```
 </details>
 
-메뉴바 ✦ 아이콘에서 종료 가능. Dock 아이콘 없음.
+메뉴바의 ✦ 아이콘에서 1/3/5/10분 간격 저전력 랜덤 정지 화면 모드나 자동 갱신 일시정지로 전환할 수 있습니다. 기본값은 Random Still - 10 Minutes입니다. 잠금화면 배경은 데스크톱에 보이는 같은 장면으로 갱신됩니다. 즉시 새 랜덤 장면을 만들거나 종료할 수도 있고, Dock 아이콘은 없습니다.
 
 ---
 
