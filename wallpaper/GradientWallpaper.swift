@@ -1161,10 +1161,33 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
     func makeStatusIcon() -> NSImage {
         let image = NSImage(size: NSSize(width: 18, height: 18))
         image.lockFocus()
-        NSColor.white.setFill()
-        NSBezierPath(ovalIn: NSRect(x: 2.2, y: 9.8, width: 6.3, height: 6.3)).fill()
-        NSBezierPath(ovalIn: NSRect(x: 9.3, y: 8.5, width: 6.5, height: 6.5)).fill()
-        NSBezierPath(ovalIn: NSRect(x: 6.2, y: 2.5, width: 6.8, height: 6.8)).fill()
+        if let context = NSGraphicsContext.current?.cgContext {
+            context.setStrokeColor(NSColor.white.cgColor)
+            context.setLineCap(.round)
+            context.setLineJoin(.round)
+
+            context.setLineWidth(2.15)
+            context.beginPath()
+            context.move(to: CGPoint(x: 14.4, y: 4.8))
+            context.addCurve(to: CGPoint(x: 4.2, y: 8.1),
+                             control1: CGPoint(x: 11.6, y: 2.4),
+                             control2: CGPoint(x: 4.2, y: 2.7))
+            context.addCurve(to: CGPoint(x: 13.7, y: 12.2),
+                             control1: CGPoint(x: 4.2, y: 13.4),
+                             control2: CGPoint(x: 10.8, y: 14.2))
+            context.strokePath()
+
+            context.setLineWidth(1.75)
+            context.beginPath()
+            context.move(to: CGPoint(x: 5.0, y: 12.9))
+            context.addCurve(to: CGPoint(x: 12.5, y: 8.9),
+                             control1: CGPoint(x: 7.4, y: 15.0),
+                             control2: CGPoint(x: 14.0, y: 13.4))
+            context.addCurve(to: CGPoint(x: 7.2, y: 7.2),
+                             control1: CGPoint(x: 11.3, y: 5.5),
+                             control2: CGPoint(x: 7.8, y: 5.4))
+            context.strokePath()
+        }
         image.unlockFocus()
         image.isTemplate = false
         return image
