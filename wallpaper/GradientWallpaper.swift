@@ -566,12 +566,251 @@ private func clamp01(_ value: CGFloat) -> CGFloat {
     min(max(value, 0), 1)
 }
 
+final class SavedScenePreviewView: NSView {
+    var record: [String: Any]? {
+        didSet { needsDisplay = true }
+    }
+
+    override var isOpaque: Bool { true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+        let width = bounds.width
+        let height = bounds.height
+
+        ctx.setFillColor(CGColor(red: 40/255, green: 40/255, blue: 40/255, alpha: 1))
+        ctx.fill(bounds)
+
+        guard width > 0, height > 0, let blobs = previewBlobStates() else {
+            drawEmptyState()
+            return
+        }
+
+        let minDim = min(width, height)
+        for blob in blobs.prefix(3) {
+            guard let x = cgFloatValue(blob["x"]),
+                  let y = cgFloatValue(blob["y"]),
+                  let radius = cgFloatValue(blob["radius"]),
+                  let sx = cgFloatValue(blob["sx"]),
+                  let sy = cgFloatValue(blob["sy"]),
+                  let rot = cgFloatValue(blob["rot"]),
+                  let color = color(from: blob["current"])
+            else { continue }
+
+            drawStaticBlob(ctx: ctx,
+                           cx: x * width,
+                           cy: y * height,
+                           size: radius * 0.90 * minDim,
+                           blur: 0.22 * minDim,
+                           sx: sx,
+                           sy: sy,
+                           rot: rot,
+                           color: color)
+        }
+        applyMeshFilmTexture(ctx: ctx, width: width, height: height)
+    }
+
+    private func previewBlobStates() -> [[String: Any]]? {
+        if let scenes = record?["scenes"] as? [[String: Any]],
+           let scene = scenes.first,
+           let blobs = scene["blobs"] as? [[String: Any]] {
+            return blobs
+        }
+        return record?["blobs"] as? [[String: Any]]
+    }
+
+    private func drawEmptyState() {
+        let text = "No Saved Scenes"
+        let attributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: NSColor(white: 1, alpha: 0.45),
+            .font: NSFont.systemFont(ofSize: 15, weight: .medium)
+        ]
+        let size = text.size(withAttributes: attributes)
+        text.draw(at: CGPoint(x: (bounds.width - size.width) / 2,
+                              y: (bounds.height - size.height) / 2),
+                  withAttributes: attributes)
+    }
+
+    private func color(from value: Any?) -> MeshRGB? {
+        guard let state = value as? [String: Any],
+              let r = cgFloatValue(state["r"]),
+              let g = cgFloatValue(state["g"]),
+              let b = cgFloatValue(state["b"])
+        else { return nil }
+        return MeshRGB(r: r, g: g, b: b)
+    }
+
+    private func doubleValue(_ value: Any?) -> Double? {
+        if let number = value as? NSNumber {
+            return number.doubleValue
+        }
+        return value as? Double
+    }
+
+    private func cgFloatValue(_ value: Any?) -> CGFloat? {
+        guard let double = doubleValue(value) else { return nil }
+        return CGFloat(double)
+    }
+}
+
+final class SavedSceneBrowserController: NSObject, NSTableViewDataSource, NSTableViewDelegate {
+    private weak var wallpaperDelegate: WallpaperDelegate?
+    private let panel: NSPanel
+    private let tableView = NSTableView()
+    private let previewView = SavedScenePreviewView()
+    private let loadButton = NSButton(title: "Load", target: nil, action: nil)
+    private let deleteButton = NSButton(title: "Delete", target: nil, action: nil)
+    private let closeButton = NSButton(title: "Close", target: nil, action: nil)
+    private var records: [[String: Any]] = []
+
+    init(wallpaperDelegate: WallpaperDelegate) {
+        self.wallpaperDelegate = wallpaperDelegate
+        panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 760, height: 430),
+                        styleMask: [.titled, .closable],
+                        backing: .buffered,
+                        defer: false)
+        super.init()
+        configurePanel()
+    }
+
+    func show() {
+        reloadRecords()
+        NSApp.activate(ignoringOtherApps: true)
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
+    }
+
+    func reloadRecords(selecting id: String? = nil) {
+        records = wallpaperDelegate?.loadSavedSceneRecords() ?? []
+        tableView.reloadData()
+
+        if let id,
+           let index = records.firstIndex(where: { $0["id"] as? String == id }) {
+            tableView.selectRowIndexes(IndexSet(integer: index), byExtendingSelection: false)
+        } else if !records.isEmpty && tableView.selectedRow < 0 {
+            tableView.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
+        }
+        updatePreview()
+    }
+
+    private func configurePanel() {
+        panel.title = "Saved Scenes"
+        panel.isReleasedWhenClosed = false
+        panel.isFloatingPanel = true
+
+        guard let contentView = panel.contentView else { return }
+        contentView.wantsLayer = true
+        contentView.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+
+        let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("SavedScene"))
+        column.title = "Scene"
+        column.width = 220
+        tableView.addTableColumn(column)
+        tableView.headerView = nil
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.allowsMultipleSelection = false
+        tableView.usesAlternatingRowBackgroundColors = false
+
+        let scrollView = NSScrollView()
+        scrollView.documentView = tableView
+        scrollView.hasVerticalScroller = true
+        scrollView.borderType = .bezelBorder
+
+        previewView.wantsLayer = true
+        previewView.layer?.cornerRadius = 8
+        previewView.layer?.masksToBounds = true
+
+        loadButton.target = self
+        loadButton.action = #selector(loadSelectedScene)
+        loadButton.keyEquivalent = "\r"
+        deleteButton.target = self
+        deleteButton.action = #selector(deleteSelectedScene)
+        closeButton.target = self
+        closeButton.action = #selector(closePanel)
+
+        [scrollView, previewView, deleteButton, closeButton, loadButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview($0)
+        }
+
+        NSLayoutConstraint.activate([
+            scrollView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            scrollView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            scrollView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -58),
+            scrollView.widthAnchor.constraint(equalToConstant: 230),
+
+            previewView.leadingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: 16),
+            previewView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            previewView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            previewView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -58),
+
+            deleteButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            deleteButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+
+            loadButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            loadButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+
+            closeButton.trailingAnchor.constraint(equalTo: loadButton.leadingAnchor, constant: -8),
+            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
+        ])
+    }
+
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        records.count
+    }
+
+    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+        wallpaperDelegate?.savedSceneTitle(records[row], fallbackIndex: row)
+    }
+
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        updatePreview()
+    }
+
+    private func updatePreview() {
+        let selectedRow = tableView.selectedRow
+        let hasSelection = selectedRow >= 0 && selectedRow < records.count
+        previewView.record = hasSelection ? records[selectedRow] : nil
+        loadButton.isEnabled = hasSelection
+        deleteButton.isEnabled = hasSelection
+    }
+
+    @objc private func loadSelectedScene() {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0, selectedRow < records.count else { return }
+        wallpaperDelegate?.applySavedSceneRecord(records[selectedRow])
+        panel.orderOut(nil)
+    }
+
+    @objc private func deleteSelectedScene() {
+        let selectedRow = tableView.selectedRow
+        guard selectedRow >= 0, selectedRow < records.count else { return }
+
+        records.remove(at: selectedRow)
+        wallpaperDelegate?.writeSavedSceneRecords(records)
+        wallpaperDelegate?.updateSavedScenesMenu()
+        tableView.reloadData()
+
+        if !records.isEmpty {
+            tableView.selectRowIndexes(IndexSet(integer: min(selectedRow, records.count - 1)),
+                                       byExtendingSelection: false)
+        }
+        updatePreview()
+    }
+
+    @objc private func closePanel() {
+        panel.orderOut(nil)
+    }
+}
+
 class WallpaperDelegate: NSObject, NSApplicationDelegate {
     var windows: [NSWindow] = []
     var statusItem: NSStatusItem?
     var headerItem: NSMenuItem?
     var modeItems: [WallpaperMode: NSMenuItem] = [:]
     var savedScenesMenu: NSMenu?
+    var savedSceneBrowser: SavedSceneBrowserController?
     var originalWallpapers: [NSScreen: URL] = [:]
     var pausedForSystem = false
     var pausedForActivity = false
@@ -889,6 +1128,11 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
         guard let savedScenesMenu else { return }
         savedScenesMenu.removeAllItems()
 
+        let browseItem = NSMenuItem(title: "Browse Saved Scenes...", action: #selector(showSavedScenesBrowser), keyEquivalent: "b")
+        browseItem.target = self
+        savedScenesMenu.addItem(browseItem)
+        savedScenesMenu.addItem(.separator())
+
         let records = loadSavedSceneRecords()
         guard !records.isEmpty else {
             let emptyItem = NSMenuItem(title: "No Saved Scenes", action: nil, keyEquivalent: "")
@@ -987,6 +1231,14 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
         writeSavedSceneRecords(records)
         saveCurrentSceneState()
         updateSavedScenesMenu()
+        savedSceneBrowser?.reloadRecords(selecting: record["id"] as? String)
+    }
+
+    @objc func showSavedScenesBrowser() {
+        if savedSceneBrowser == nil {
+            savedSceneBrowser = SavedSceneBrowserController(wallpaperDelegate: self)
+        }
+        savedSceneBrowser?.show()
     }
 
     @objc func loadSavedScene(_ sender: NSMenuItem) {
@@ -1009,6 +1261,7 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
             try? FileManager.default.removeItem(at: url)
         }
         updateSavedScenesMenu()
+        savedSceneBrowser?.reloadRecords()
     }
 
     @objc func refreshLockScreenMenuItem() {

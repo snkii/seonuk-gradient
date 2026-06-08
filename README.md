@@ -24,8 +24,8 @@ Soft organic color blobs are generated as still scenes on a dark background. Ins
 
 - **3 organic color blobs** with randomized but separated position, size, stretch, rotation, and color
 - **Static scenes** generated on launch, manually, or by a low-power timer
-- **Menu bar controls** for 1/3/5/10 minute random still modes, pause, save, and load
-- **Favorite scenes** you can save and restore later
+- **Menu bar controls** for 1/3/5/10 minute random still modes, pause, save, preview, and load
+- **Favorite scenes** you can preview, save, and restore later
 - **Static lock screen background** synced from the same desktop scene
 - **Shared multi-display scene** so every connected display uses the same generated scene
 - **Lifted color rendering** with subtle fine/coarse grain and warm tone overlay
@@ -113,8 +113,8 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 - **3개의 유기적 색상 블롭**이 서로 분리된 위치와 색상을 유지하면서 크기, 비율, 회전을 랜덤으로 가짐
 - **정적 scene**을 실행 시, 수동 생성 시, 또는 저전력 타이머로 생성
-- **메뉴바 제어**로 1/3/5/10분 랜덤 정지 화면, 일시정지, 저장, 불러오기 가능
-- **마음에 드는 scene 저장** 및 나중에 복원 가능
+- **메뉴바 제어**로 1/3/5/10분 랜덤 정지 화면, 일시정지, 저장, 미리보기, 불러오기 가능
+- **마음에 드는 scene 저장** 및 미리보기 후 복원 가능
 - **잠금화면 정적 배경**을 데스크톱과 같은 scene으로 동기화
 - **멀티 디스플레이 공유 scene**으로 모든 디스플레이가 같은 생성 scene 사용
 - **살짝 올린 컬러 렌더링**에 subtle fine/coarse grain과 따뜻한 tone overlay 적용
