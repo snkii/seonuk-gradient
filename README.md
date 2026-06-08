@@ -1,5 +1,7 @@
 # Gradient Screensaver
 
+<p align="right"><a href="README.ko.md">한국어</a></p>
+
 **Animated mesh gradient for your desktop — Windows screensaver & macOS wallpaper.**
 
 Soft color blobs drift across a dark background, slowly cycling through a handpicked palette. Inspired by the background on [seon.uk](https://seon.uk).
