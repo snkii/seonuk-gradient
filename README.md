@@ -64,13 +64,14 @@ Open **System Settings → Screen Saver** and select **GradientScreenSaver**.
 ### 🍎 macOS — Live Wallpaper
 
 ```bash
+git clone https://github.com/snkii/gradient-screensaver
 cd gradient-screensaver/wallpaper
-make run          # start
-make stop         # stop
-make install-login  # auto-start at login
+make install        # install to /Applications
+make install-login  # also auto-start at login
 ```
 
-No app to install. Runs silently in the background, no Dock icon.
+Installs as a proper `.app`. A ✦ icon appears in the menu bar — click it to quit.  
+No Dock icon. To manage auto-start: **System Settings → General → Login Items**.
 
 ---
 

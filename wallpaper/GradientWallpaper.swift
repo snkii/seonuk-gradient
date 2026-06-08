@@ -60,9 +60,25 @@ draw();
 
 class WallpaperDelegate: NSObject, NSApplicationDelegate {
     var windows: [NSWindow] = []
+    var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ n: Notification) {
         NSScreen.screens.forEach { windows.append(makeWindow($0)) }
+        setupMenuBar()
+    }
+
+    func setupMenuBar() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        if let button = statusItem?.button {
+            button.image = NSImage(systemSymbolName: "sparkles", accessibilityDescription: "Gradient Wallpaper")
+        }
+        let menu = NSMenu()
+        let header = NSMenuItem(title: "Gradient Wallpaper", action: nil, keyEquivalent: "")
+        header.isEnabled = false
+        menu.addItem(header)
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        statusItem?.menu = menu
     }
 
     func makeWindow(_ screen: NSScreen) -> NSWindow {
@@ -91,7 +107,7 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
 }
 
 let app = NSApplication.shared
-app.setActivationPolicy(.prohibited)
+app.setActivationPolicy(.accessory)
 let delegate = WallpaperDelegate()
 app.delegate = delegate
 app.run()
