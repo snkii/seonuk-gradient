@@ -1162,30 +1162,25 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
         let image = NSImage(size: NSSize(width: 18, height: 18))
         image.lockFocus()
         if let context = NSGraphicsContext.current?.cgContext {
+            context.setShouldAntialias(true)
             context.setStrokeColor(NSColor.white.cgColor)
+            context.setFillColor(NSColor.white.cgColor)
             context.setLineCap(.round)
             context.setLineJoin(.round)
 
-            context.setLineWidth(2.15)
-            context.beginPath()
-            context.move(to: CGPoint(x: 14.4, y: 4.8))
-            context.addCurve(to: CGPoint(x: 4.2, y: 8.1),
-                             control1: CGPoint(x: 11.6, y: 2.4),
-                             control2: CGPoint(x: 4.2, y: 2.7))
-            context.addCurve(to: CGPoint(x: 13.7, y: 12.2),
-                             control1: CGPoint(x: 4.2, y: 13.4),
-                             control2: CGPoint(x: 10.8, y: 14.2))
-            context.strokePath()
+            let circle = CGRect(x: 3.15, y: 3.15, width: 11.7, height: 11.7)
+            context.setLineWidth(1.45)
+            context.strokeEllipse(in: circle)
 
             context.setLineWidth(1.75)
             context.beginPath()
-            context.move(to: CGPoint(x: 5.0, y: 12.9))
-            context.addCurve(to: CGPoint(x: 12.5, y: 8.9),
-                             control1: CGPoint(x: 7.4, y: 15.0),
-                             control2: CGPoint(x: 14.0, y: 13.4))
-            context.addCurve(to: CGPoint(x: 7.2, y: 7.2),
-                             control1: CGPoint(x: 11.3, y: 5.5),
-                             control2: CGPoint(x: 7.8, y: 5.4))
+            context.move(to: CGPoint(x: 9.0, y: 14.85))
+            context.addCurve(to: CGPoint(x: 9.0, y: 9.0),
+                             control1: CGPoint(x: 5.75, y: 14.35),
+                             control2: CGPoint(x: 5.75, y: 9.65))
+            context.addCurve(to: CGPoint(x: 9.0, y: 3.15),
+                             control1: CGPoint(x: 12.25, y: 8.35),
+                             control2: CGPoint(x: 12.25, y: 3.65))
             context.strokePath()
         }
         image.unlockFocus()
@@ -1198,6 +1193,7 @@ class WallpaperDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem?.button {
             button.image = makeStatusIcon()
             button.imagePosition = .imageOnly
+            button.imageScaling = .scaleProportionallyDown
             button.title = ""
             button.alignment = .center
             button.toolTip = "Gradient Wallpaper"
