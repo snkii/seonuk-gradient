@@ -43,8 +43,10 @@ function draw(){
     const cx=b.x*w, cy=b.y*h, r=b.r*m;
     const [r_,g_,bl_]=b.c.map(Math.round);
     const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    g.addColorStop(0,`rgba(${r_},${g_},${bl_},.52)`);
-    g.addColorStop(1,`rgba(${r_},${g_},${bl_},0)`);
+    g.addColorStop(0,   `rgba(${r_},${g_},${bl_},.52)`);
+    g.addColorStop(.45, `rgba(${r_},${g_},${bl_},.22)`);
+    g.addColorStop(.75, `rgba(${r_},${g_},${bl_},.06)`);
+    g.addColorStop(1,   `rgba(${r_},${g_},${bl_},0)`);
     ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
   }
   requestAnimationFrame(draw);

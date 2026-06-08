@@ -104,9 +104,11 @@ public class GradientScreenSaverView: ScreenSaverView {
         let cs = CGColorSpaceCreateDeviceRGB()
         let colors = [
             CGColor(colorSpace: cs, components: [r_, g_, b_, 133/255])!,
+            CGColor(colorSpace: cs, components: [r_, g_, b_, 56/255])!,
+            CGColor(colorSpace: cs, components: [r_, g_, b_, 15/255])!,
             CGColor(colorSpace: cs, components: [r_, g_, b_, 0])!,
         ] as CFArray
-        let locs: [CGFloat] = [0, 1]
+        let locs: [CGFloat] = [0, 0.45, 0.75, 1]
         guard let grad = CGGradient(colorsSpace: cs, colors: colors, locations: locs) else { return }
 
         ctx.saveGState()
