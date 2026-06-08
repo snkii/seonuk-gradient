@@ -4,23 +4,32 @@ import CoreGraphics
 
 let html = """
 <!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>*{margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;background:#1c1c1c}canvas{display:block}</style>
-</head><body><canvas id="c"></canvas><script>
-const c = document.getElementById('c');
-const ctx = c.getContext('2d');
-function resize(){ c.width = window.innerWidth; c.height = window.innerHeight; }
-window.addEventListener('resize', resize); resize();
-
+<style>*{margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden;background:#282828}</style>
+</head><body><script>
 const palette = [
   [250,189,47],[254,128,25],[251,73,52],[211,134,155],
   [184,187,38],[142,192,124],[131,165,152],[69,133,136]
 ];
 
 const blobs = [
-  {x:.22,y:.45,vx:.00022,vy:.00016,r:.70,c:[250,189,47], t:[250,189,47]},
-  {x:.78,y:.20,vx:-.00018,vy:.00021,r:.65,c:[131,165,152],t:[131,165,152]},
-  {x:.52,y:.78,vx:.00014,vy:-.00023,r:.60,c:[211,134,155],t:[211,134,155]},
+  {x:.22,y:.45,vx:.00022,vy:.00016,r:.90,c:[250,189,47],t:[250,189,47],el:null},
+  {x:.78,y:.20,vx:-.00018,vy:.00021,r:.90,c:[131,165,152],t:[131,165,152],el:null},
+  {x:.52,y:.78,vx:.00014,vy:-.00023,r:.90,c:[211,134,155],t:[211,134,155],el:null},
 ];
+
+blobs.forEach(b => {
+  const el = document.createElement('div');
+  el.style.position = 'fixed';
+  el.style.borderRadius = '50%';
+  el.style.opacity = '0.7';
+  el.style.willChange = 'transform, background-color';
+  document.body.appendChild(el);
+  b.el = el;
+  const m = Math.min(window.innerWidth, window.innerHeight);
+  const size = b.r * m;
+  el.style.width = el.style.height = size + 'px';
+  el.style.filter = `blur(${Math.round(m * 0.22)}px)`;
+});
 
 function lerp(a,b,t){ return a.map((v,i)=>v+(b[i]-v)*t); }
 
@@ -32,21 +41,16 @@ randomize();
 setInterval(randomize, 6000);
 
 function draw(){
-  const w=c.width, h=c.height, m=Math.min(w,h);
-  ctx.fillStyle='rgb(28,28,28)';
-  ctx.fillRect(0,0,w,h);
+  const w=window.innerWidth, h=window.innerHeight, m=Math.min(w,h);
   for(const b of blobs){
     b.c=lerp(b.c,b.t,.025);
     b.x+=b.vx; b.y+=b.vy;
     if(b.x<-.2||b.x>1.2) b.vx*=-1;
     if(b.y<-.2||b.y>1.2) b.vy*=-1;
-    const cx=b.x*w, cy=b.y*h, r=b.r*m;
+    const size=b.r*m;
     const [r_,g_,bl_]=b.c.map(Math.round);
-    ctx.save();
-    ctx.filter=`blur(${Math.round(r*0.32)}px)`;
-    ctx.fillStyle=`rgba(${r_},${g_},${bl_},.85)`;
-    ctx.beginPath(); ctx.arc(cx,cy,r*0.5,0,Math.PI*2); ctx.fill();
-    ctx.restore();
+    b.el.style.background = `rgb(${r_},${g_},${bl_})`;
+    b.el.style.transform = `translate(${b.x*w - size/2}px, ${b.y*h - size/2}px)`;
   }
   requestAnimationFrame(draw);
 }

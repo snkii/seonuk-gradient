@@ -23,6 +23,7 @@ public class GradientScreenSaverView: ScreenSaverView {
 
     private var blobs: [Blob] = []
     private var colorTimer: Timer?
+    private let ciCtx = CIContext()
 
     public override init?(frame: NSRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
@@ -39,7 +40,7 @@ public class GradientScreenSaverView: ScreenSaverView {
 
         let positions:  [(CGFloat, CGFloat)] = [(0.22, 0.45), (0.78, 0.20), (0.52, 0.78)]
         let velocities: [(CGFloat, CGFloat)] = [(0.00022, 0.00016), (-0.00018, 0.00021), (0.00014, -0.00023)]
-        let radii:      [CGFloat]            = [0.70, 0.65, 0.60]
+        let radii:      [CGFloat]            = [0.90, 0.90, 0.90]
 
         for i in 0..<3 {
             let c = palette[i]
@@ -101,27 +102,27 @@ public class GradientScreenSaverView: ScreenSaverView {
 
     private func drawBlob(ctx: CGContext, cx: CGFloat, cy: CGFloat, r: CGFloat,
                           r_: CGFloat, g_: CGFloat, b_: CGFloat) {
-        // Draw solid circle to offscreen image, apply CIGaussianBlur, composite back
-        let diameter = Int(r * 2 + r * 0.64 * 2 + 4)
-        guard diameter > 0,
-              let offscreen = CGContext(data: nil, width: diameter, height: diameter,
+        let circleR  = r * 0.5
+        let blurSigma = r * 0.5
+        let padding  = blurSigma * 3.5
+        let bufSize  = Int(circleR * 2 + padding * 2) + 4
+        guard bufSize > 0,
+              let offscreen = CGContext(data: nil, width: bufSize, height: bufSize,
                                        bitsPerComponent: 8, bytesPerRow: 0,
                                        space: CGColorSpaceCreateDeviceRGB(),
                                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
         else { return }
 
-        let center = CGFloat(diameter) / 2
+        let center = CGFloat(bufSize) / 2
         offscreen.setFillColor(CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(),
-                                       components: [r_, g_, b_, 0.85])!)
-        offscreen.addEllipse(in: CGRect(x: center - r * 0.5, y: center - r * 0.5,
-                                        width: r, height: r))
+                                       components: [r_, g_, b_, 0.7])!)
+        offscreen.addEllipse(in: CGRect(x: center - circleR, y: center - circleR,
+                                        width: circleR * 2, height: circleR * 2))
         offscreen.fillPath()
 
         guard let rawImg = offscreen.makeImage() else { return }
-        let ciImg = CIImage(cgImage: rawImg)
-        let blurred = ciImg.applyingFilter("CIGaussianBlur",
-                                           parameters: ["inputRadius": r * 0.32])
-        let ciCtx = CIContext()
+        let ciImg   = CIImage(cgImage: rawImg)
+        let blurred = ciImg.applyingFilter("CIGaussianBlur", parameters: ["inputRadius": blurSigma])
         guard let blurredCG = ciCtx.createCGImage(blurred, from: blurred.extent) else { return }
 
         ctx.draw(blurredCG, in: CGRect(

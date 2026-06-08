@@ -90,7 +90,7 @@ class ScreenSaverForm : Form
         float[] ys  = { .45f, .20f, .78f };
         float[] vxs = {  .00022f, -.00018f,  .00014f };
         float[] vys = {  .00016f,  .00021f, -.00023f };
-        float[] rs  = {  .70f,  .65f,  .60f };
+        float[] rs  = {  .90f,  .90f,  .90f };
 
         for (int i = 0; i < 3; i++)
         {
@@ -158,12 +158,11 @@ class ScreenSaverForm : Form
     {
         using var path  = new GraphicsPath();
         path.AddEllipse(cx - r, cy - r, r * 2, r * 2);
-        using var brush = new PathGradientBrush(path)
-        {
-            CenterPoint    = new PointF(cx, cy),
-            CenterColor    = Color.FromArgb(133, col),
-            SurroundColors = new[] { Color.FromArgb(0, col) },
-        };
+        using var brush = new PathGradientBrush(path) { CenterPoint = new PointF(cx, cy) };
+        var blend = new ColorBlend(5);
+        blend.Colors    = new[] { Color.FromArgb(0, col), Color.FromArgb(0, col), Color.FromArgb(35, col), Color.FromArgb(120, col), Color.FromArgb(175, col) };
+        blend.Positions = new[] { 0f, 0.12f, 0.42f, 0.72f, 1f };
+        brush.InterpolationColors = blend;
         _g!.FillPath(brush, path);
     }
 
