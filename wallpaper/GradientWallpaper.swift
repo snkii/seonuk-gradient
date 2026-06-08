@@ -212,13 +212,9 @@ private func drawTiledFilmGrain(ctx: CGContext, image: CGImage, tileSize: CGFloa
 final class GradientWallpaperView: NSView {
     private let blobSizeFactor: CGFloat = 0.90
     private let blurFactor: CGFloat = 0.22
-    private let minimumBlobCenterDistance: CGFloat = 0.52
-    private let minimumColorDistance: CGFloat = 0.36
-    private let randomCandidateCount = 48
 
     private var blobs: [MeshBlob] = []
     private var mode: WallpaperMode = defaultWallpaperMode
-    private let colorTransitionSeconds: CGFloat = 6.5
 
     override var isOpaque: Bool { true }
 
@@ -247,104 +243,24 @@ final class GradientWallpaperView: NSView {
     }
 
     private func initBlobs() {
-        let colors = distinctColors(count: 3)
-        let centers = separatedBlobCenters(count: 3)
-
-        blobs = (0..<3).map { index in
-            let color = colors[index]
-            let velocity = randomVelocity()
+        blobs = (0..<3).map { _ in
+            let color = randomColor()
             return MeshBlob(
-                x: centers[index].x,
-                y: centers[index].y,
-                vx: velocity.vx,
-                vy: velocity.vy,
-                vr: randomBetween(-0.8, 0.8),
+                x: randomBetween(-0.08, 1.08),
+                y: randomBetween(-0.08, 1.08),
+                vx: 0,
+                vy: 0,
+                vr: 0,
                 radius: randomBetween(0.86, 1.08),
                 sx: randomBetween(0.85, 1.38),
                 sy: randomBetween(0.78, 1.28),
                 rot: randomBetween(0, 360),
-                colorElapsed: colorTransitionSeconds,
+                colorElapsed: 0,
                 current: color,
                 start: color,
                 target: color
             )
         }
-    }
-
-    private func distinctColors(count: Int) -> [MeshRGB] {
-        guard count > 0 else { return [] }
-
-        var candidates = meshPalette.shuffled()
-        var selected: [MeshRGB] = []
-        if let first = candidates.popLast() {
-            selected.append(first)
-        }
-
-        while selected.count < count, !candidates.isEmpty {
-            let ranked = candidates.enumerated().map { index, color in
-                (index: index, color: color, distance: nearestColorDistance(color, to: selected))
-            }.sorted { $0.distance > $1.distance }
-
-            let preferred = ranked.filter { $0.distance >= minimumColorDistance }
-            let pool = preferred.isEmpty ? Array(ranked.prefix(min(4, ranked.count))) : Array(preferred.prefix(min(4, preferred.count)))
-            guard let pick = pool.randomElement() else { break }
-
-            selected.append(pick.color)
-            candidates.remove(at: pick.index)
-        }
-
-        while selected.count < count {
-            selected.append(randomColor())
-        }
-        return selected
-    }
-
-    private func separatedBlobCenters(count: Int) -> [(x: CGFloat, y: CGFloat)] {
-        guard count > 0 else { return [] }
-
-        var centers: [(x: CGFloat, y: CGFloat)] = []
-        while centers.count < count {
-            if centers.isEmpty {
-                centers.append(randomBlobCenter())
-                continue
-            }
-
-            let ranked = (0..<randomCandidateCount).map { _ -> (center: (x: CGFloat, y: CGFloat), distance: CGFloat) in
-                let center = randomBlobCenter()
-                return (center: center, distance: nearestCenterDistance(center, to: centers))
-            }.sorted { $0.distance > $1.distance }
-
-            let preferred = ranked.filter { $0.distance >= minimumBlobCenterDistance }
-            let pool = preferred.isEmpty ? Array(ranked.prefix(min(8, ranked.count))) : Array(preferred.prefix(min(8, preferred.count)))
-            centers.append((pool.randomElement() ?? ranked[0]).center)
-        }
-        return centers
-    }
-
-    private func randomBlobCenter() -> (x: CGFloat, y: CGFloat) {
-        (
-            x: randomBetween(-0.10, 1.10),
-            y: randomBetween(-0.08, 1.08)
-        )
-    }
-
-    private func nearestColorDistance(_ color: MeshRGB, to selected: [MeshRGB]) -> CGFloat {
-        guard !selected.isEmpty else { return .greatestFiniteMagnitude }
-        return selected.map { colorDistance(color, $0) }.min() ?? .greatestFiniteMagnitude
-    }
-
-    private func colorDistance(_ a: MeshRGB, _ b: MeshRGB) -> CGFloat {
-        let dr = a.r - b.r
-        let dg = a.g - b.g
-        let db = a.b - b.b
-        return sqrt(dr * dr + dg * dg + db * db)
-    }
-
-    private func nearestCenterDistance(_ center: (x: CGFloat, y: CGFloat), to centers: [(x: CGFloat, y: CGFloat)]) -> CGFloat {
-        guard !centers.isEmpty else { return .greatestFiniteMagnitude }
-        return centers.map { other in
-            hypot(center.x - other.x, center.y - other.y)
-        }.min() ?? .greatestFiniteMagnitude
     }
 
     private func randomColor() -> MeshRGB {
@@ -353,12 +269,6 @@ final class GradientWallpaperView: NSView {
 
     private func randomBetween(_ min: CGFloat, _ max: CGFloat) -> CGFloat {
         min + CGFloat.random(in: 0...1) * (max - min)
-    }
-
-    private func randomVelocity() -> (vx: CGFloat, vy: CGFloat) {
-        let angle = randomBetween(0, CGFloat.pi * 2)
-        let speed = randomBetween(0.0026, 0.0054)
-        return (cos(angle) * speed, sin(angle) * speed)
     }
 
     func sceneState(for screen: NSScreen, index: Int) -> [String: Any] {

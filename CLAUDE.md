@@ -40,7 +40,7 @@ make install-login  # 로그인 시 자동 실행 등록
 ## 동작 방식
 
 - 3개의 컬러 blob이 정적 scene으로 생성됨
-- 각 blob은 실행/생성마다 위치, 크기, 비율, 회전, 색상이 랜덤으로 결정되며 색상/중심점은 최소 거리 조건으로 분리
+- 각 blob은 seon.uk의 `createStaticBlob()`과 같이 위치, 크기, 비율, 회전, 색상을 독립적으로 랜덤 샘플링
 - 기본 모드는 Random Still 10분
 - 메뉴바 아이콘에서 Paused / Random Still 1·3·5·10분 모드 전환 가능
 - 메뉴바에서 현재 scene 저장 및 저장한 scene 미리보기/불러오기 가능

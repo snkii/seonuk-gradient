@@ -22,7 +22,7 @@ Soft organic color blobs are generated as still scenes on a dark background. Ins
 
 ## Features
 
-- **3 organic color blobs** with randomized but separated position, size, stretch, rotation, and color
+- **3 organic color blobs** with independently randomized position, size, stretch, rotation, and color
 - **Static scenes** generated on launch, manually, or by a low-power timer
 - **Menu bar controls** for 1/3/5/10 minute random still modes, pause, save, preview, and load
 - **Favorite scenes** you can preview, save, and restore later
@@ -111,7 +111,7 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 
 ## 특징
 
-- **3개의 유기적 색상 블롭**이 서로 분리된 위치와 색상을 유지하면서 크기, 비율, 회전을 랜덤으로 가짐
+- **3개의 유기적 색상 블롭**이 위치, 크기, 비율, 회전, 색상을 각각 독립적으로 랜덤 샘플링
 - **정적 scene**을 실행 시, 수동 생성 시, 또는 저전력 타이머로 생성
 - **메뉴바 제어**로 1/3/5/10분 랜덤 정지 화면, 일시정지, 저장, 미리보기, 불러오기 가능
 - **마음에 드는 scene 저장** 및 미리보기 후 복원 가능
