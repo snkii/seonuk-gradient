@@ -137,7 +137,7 @@ The same autonomous mesh animation runs as the background of **[seon.uk](https:/
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 ---
@@ -277,4 +277,4 @@ Gruvbox 팔레트의 10가지 엑센트 컬러:
 
 ## 라이선스
 
-MIT
+MIT. [LICENSE](LICENSE)와 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 참고하세요.
