@@ -37,10 +37,10 @@ public class GradientScreenSaverView: ScreenSaverView {
         RGB(r: 146/255, g: 131/255, b: 116/255),
     ]
 
-    private static let fineFilmGrainTileSize: CGFloat = 96
-    private static let coarseFilmGrainTileSize: CGFloat = 360
-    private static let fineFilmGrainImage = makeFilmGrainImage(size: Int(fineFilmGrainTileSize), seed: 0x5E0A)
-    private static let coarseFilmGrainImage = makeFilmGrainImage(size: Int(coarseFilmGrainTileSize), seed: 0xC0A4)
+    private static let fineFilmGrainTileSize: CGFloat = 731
+    private static let coarseFilmGrainTileSize: CGFloat = 1543
+    private static let fineFilmGrainImage = makeFilmGrainImage(size: Int(fineFilmGrainTileSize), seed: 0x5E0A, contrast: 46)
+    private static let coarseFilmGrainImage = makeFilmGrainImage(size: Int(coarseFilmGrainTileSize), seed: 0xC0A4, contrast: 26)
 
     private let blobSizeFactor: CGFloat = 0.90
     private let blurFactor: CGFloat = 0.22
@@ -204,14 +204,15 @@ public class GradientScreenSaverView: ScreenSaverView {
         return seed
     }
 
-    private static func makeFilmGrainImage(size: Int, seed: UInt32) -> CGImage? {
+    private static func makeFilmGrainImage(size: Int, seed: UInt32, contrast: Int) -> CGImage? {
         guard size > 0 else { return nil }
 
         var state = seed == 0 ? 0x9e3779b9 : seed
         var pixels = [UInt8](repeating: 0, count: size * size * 4)
 
         for offset in stride(from: 0, to: pixels.count, by: 4) {
-            let value = UInt8(truncatingIfNeeded: nextFilmGrainSeed(&state))
+            let raw = Int(UInt8(truncatingIfNeeded: nextFilmGrainSeed(&state)))
+            let value = UInt8(clamping: 128 + ((raw - 128) * contrast / 128))
             pixels[offset] = value
             pixels[offset + 1] = value
             pixels[offset + 2] = value
@@ -306,7 +307,7 @@ public class GradientScreenSaverView: ScreenSaverView {
                                    locations: [0, 0.45, 1]) {
             ctx.saveGState()
             ctx.setBlendMode(.softLight)
-            ctx.setAlpha(0.05)
+            ctx.setAlpha(0.032)
             ctx.drawLinearGradient(linear,
                                    start: CGPoint(x: 0, y: 0),
                                    end: CGPoint(x: width, y: height),
@@ -323,7 +324,7 @@ public class GradientScreenSaverView: ScreenSaverView {
                                    locations: [0, 0.36, 0.68]) {
             ctx.saveGState()
             ctx.setBlendMode(.softLight)
-            ctx.setAlpha(0.05)
+            ctx.setAlpha(0.032)
             ctx.drawRadialGradient(radial,
                                    startCenter: CGPoint(x: width * 0.48, y: height * 0.42),
                                    startRadius: 0,
@@ -340,30 +341,38 @@ public class GradientScreenSaverView: ScreenSaverView {
         ctx.interpolationQuality = .none
 
         if let coarseImage = Self.coarseFilmGrainImage {
-            ctx.setAlpha(0.05)
+            ctx.setAlpha(0.018)
             drawTiledFilmGrain(ctx: ctx,
                                image: coarseImage,
                                tileSize: Self.coarseFilmGrainTileSize,
                                width: width,
-                               height: height)
+                               height: height,
+                               xOffset: -863,
+                               yOffset: -541)
         }
 
         if let fineImage = Self.fineFilmGrainImage {
-            ctx.setAlpha(0.10)
+            ctx.setAlpha(0.046)
             drawTiledFilmGrain(ctx: ctx,
                                image: fineImage,
                                tileSize: Self.fineFilmGrainTileSize,
                                width: width,
-                               height: height)
+                               height: height,
+                               xOffset: -211,
+                               yOffset: -397)
         }
 
         ctx.restoreGState()
     }
 
-    private func drawTiledFilmGrain(ctx: CGContext, image: CGImage, tileSize: CGFloat, width: CGFloat, height: CGFloat) {
-        var y: CGFloat = 0
+    private func drawTiledFilmGrain(ctx: CGContext, image: CGImage, tileSize: CGFloat, width: CGFloat, height: CGFloat, xOffset: CGFloat, yOffset: CGFloat) {
+        var y = yOffset
+        while y > 0 { y -= tileSize }
+        while y + tileSize < 0 { y += tileSize }
         while y < height {
-            var x: CGFloat = 0
+            var x = xOffset
+            while x > 0 { x -= tileSize }
+            while x + tileSize < 0 { x += tileSize }
             while x < width {
                 ctx.draw(image, in: CGRect(x: x, y: y, width: tileSize, height: tileSize))
                 x += tileSize
