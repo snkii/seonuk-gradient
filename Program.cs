@@ -65,12 +65,12 @@ class ScreenSaverForm : Form
 
     public ScreenSaverForm(Rectangle bounds)
     {
-        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
         Bounds          = bounds;
         FormBorderStyle = FormBorderStyle.None;
         TopMost         = true;
         BackColor       = Color.Black;
-        Cursor          = Cursors.None;
+        Cursor.Hide();
 
         InitBlobs();
         RandomizeTargets();
